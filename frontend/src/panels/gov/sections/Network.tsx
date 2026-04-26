@@ -57,6 +57,7 @@ export function GovNetwork() {
       label: g.name,
       sub: `${g.type} · ${g.region}`,
       kind: "org",
+      size: "sm",
       image: g.logo,
       accent: "var(--color-grape)",
       allyType: "gov",
@@ -66,6 +67,7 @@ export function GovNetwork() {
       label: o.name,
       sub: `${o.type} · ${o.region}`,
       kind: "org",
+      size: "sm",
       image: o.logo,
       accent: o.type === "Multilateral" || o.type === "Foundation" ? "var(--color-mint)" : "var(--color-coral)",
       allyType:
@@ -78,6 +80,8 @@ export function GovNetwork() {
       selfNode: { id: selfOrg.id, label: selfOrg.label, sub: selfOrg.sub, image: selfOrg.image },
       people: [],
       orgs: [...govNodes, ...orgNodes],
+      width: 1200,
+      height: 820,
     });
 
     const edges: { source: string; target: string; weight?: number; dashed?: boolean }[] = [];
@@ -145,15 +149,15 @@ export function GovNetwork() {
                     />
                   )}
                   <div>
-                    <p className="eyebrow">Ally</p>
-                    <h3 className="font-display text-lg font-semibold" style={{ color: "var(--color-ink)" }}>{selected.label}</h3>
+                    <p className="eyebrow" style={{ color: "#4b5563" }}>Ally</p>
+                    <h3 className="font-display text-lg font-semibold" style={{ color: "#000" }}>{selected.label}</h3>
                   </div>
                 </div>
                 <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground">
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              {selected.sub && <p className="mt-3 text-[13px]" style={{ color: "var(--color-ink)" }}>{selected.sub}</p>}
+              {selected.sub && <p className="mt-3 text-[13px]" style={{ color: "#111827" }}>{selected.sub}</p>}
               <Button size="sm" className="mt-4 w-full rounded-full">
                 <Handshake className="mr-1.5 h-3.5 w-3.5" />
                 Open partnership brief
