@@ -106,13 +106,13 @@ export function OrgNetwork() {
                     />
                   )}
                   <div>
-                    <p className="eyebrow">{selected.kind === "org" ? "Organization" : "Candidate"}</p>
-                    <h3 className="font-display text-lg font-semibold" style={{ color: "var(--color-ink)" }}>{selected.label}</h3>
+                    <p className="eyebrow" style={{ color: "#4b5563" }}>{selected.kind === "org" ? "Organization" : "Candidate"}</p>
+                    <h3 className="font-display text-lg font-semibold" style={{ color: "#000" }}>{selected.label}</h3>
                   </div>
                 </div>
                 <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
               </div>
-              {selected.sub && <p className="mt-3 text-[13px]" style={{ color: "var(--color-ink)" }}>{selected.sub}</p>}
+              {selected.sub && <p className="mt-3 text-[13px]" style={{ color: "#111827" }}>{selected.sub}</p>}
               <Button size="sm" className="mt-4 w-full rounded-full">{selected.kind === "org" ? "Open partner" : "Invite to apply"}</Button>
             </div>
           )}
