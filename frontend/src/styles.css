@@ -263,3 +263,10 @@
 .light-mode .gradient-border::before {
   background: linear-gradient(135deg, rgba(124,58,237,0.4), rgba(8,145,178,0.2), rgba(225,29,72,0.15));
 }
+
+
+/* Galaxy node pulse */
+@keyframes pulse-glow {
+  0%, 100% { transform: scale(1); opacity: 0.15; }
+  50% { transform: scale(1.15); opacity: 0.08; }
+}

@@ -4,8 +4,7 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import { NODE_COLORS, NODE_LABELS, type GalaxyNodeData } from "../galaxy/types";
 
-// Size by ring: center largest, outer smallest
-const RING_SIZE = { center: 0.45, inner: 0.25, middle: 0.18, outer: 0.13 };
+const RING_SIZE = { center: 76, inner: 48, middle: 42, outer: 36 };
 
 export function GalaxySphere({
   node, position, selected, onSelect, onHover,
@@ -16,75 +15,116 @@ export function GalaxySphere({
   onSelect: (id: string) => void;
   onHover: (id: string | null) => void;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const color = NODE_COLORS[node.type];
   const isCenter = node.ring === "center";
-  const baseSize = RING_SIZE[node.ring];
+  const size = RING_SIZE[node.ring];
+  const glowSize = isCenter ? 130 : 80;
 
-  // Subtle vertical oscillation — different phase per node
+  // Subtle vertical oscillation
   const phase = node.strength * 0.07;
   useFrame(() => {
-    if (meshRef.current) {
-      meshRef.current.position.y = position[1] + Math.sin(Date.now() * 0.0008 + phase) * 0.04;
-    }
-    if (glowRef.current) {
-      const s = 1 + Math.sin(Date.now() * 0.001 + phase) * (isCenter ? 0.12 : 0.06);
-      glowRef.current.scale.setScalar(s);
+    if (groupRef.current) {
+      groupRef.current.position.y = position[1] + Math.sin(Date.now() * 0.0008 + phase) * 0.04;
     }
   });
 
   const handleOver = () => { setHovered(true); onHover(node.id); document.body.style.cursor = "pointer"; };
   const handleOut = () => { setHovered(false); onHover(null); document.body.style.cursor = "auto"; };
 
-  const emissive = selected ? 2 : hovered ? 1.4 : isCenter ? 0.9 : 0.5;
-  const glowScale = isCenter ? 2.8 : selected ? 2.2 : hovered ? 1.8 : 1.4;
-  const opacity = node.ring === "outer" ? 0.7 : 0.9;
-
   return (
-    <group position={position}>
-      {/* Soft glow shell */}
-      <mesh ref={glowRef} scale={[glowScale, glowScale, glowScale]}>
-        <sphereGeometry args={[baseSize, 16, 16]} />
-        <meshBasicMaterial color={color} transparent opacity={selected ? 0.1 : 0.035} depthWrite={false} />
+    <group ref={groupRef} position={position}>
+      {/* Invisible sphere for raycasting (hover/click detection) */}
+      <mesh
+        onPointerOver={handleOver}
+        onPointerOut={handleOut}
+        onClick={() => onSelect(node.id)}
+        visible={false}
+      >
+        <sphereGeometry args={[isCenter ? 0.5 : 0.3, 8, 8]} />
+        <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
-      {/* Core sphere */}
-      <mesh ref={meshRef} onPointerOver={handleOver} onPointerOut={handleOut} onClick={() => onSelect(node.id)}>
-        <sphereGeometry args={[baseSize, 32, 32]} />
-        <meshPhysicalMaterial
-          color="#0a0e1c"
-          emissive={color}
-          emissiveIntensity={emissive}
-          roughness={0.4}
-          metalness={0.8}
-          clearcoat={0.3}
-          transparent
-          opacity={opacity}
-        />
-      </mesh>
+      {/* HTML node — same design as 2D GalaxyNode */}
+      <Html center distanceFactor={isCenter ? 6 : 8} style={{ pointerEvents: "none" }}>
+        <div style={{ width: size, height: size, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* Ambient glow */}
+          <div style={{
+            position: "absolute",
+            width: glowSize,
+            height: glowSize,
+            left: (size - glowSize) / 2,
+            top: (size - glowSize) / 2,
+            borderRadius: "50%",
+            background: `radial-gradient(circle, ${color}${isCenter ? "50" : "30"}, transparent 70%)`,
+            filter: "blur(10px)",
+            animation: isCenter ? "pulse-glow 3s ease-in-out infinite" : "pulse-glow 4s ease-in-out infinite",
+            opacity: selected ? 0.4 : hovered ? 0.3 : 0.15,
+            transition: "opacity 0.25s",
+          }} />
 
-      {/* Label — hover/select or always for center */}
-      {(hovered || selected || isCenter) && (
-        <Html center distanceFactor={isCenter ? 7 : 9} style={{ pointerEvents: "none" }}>
-          <div className="whitespace-nowrap rounded-lg px-2.5 py-1.5 text-center"
-            style={{
-              background: "rgba(6,8,18,0.92)",
-              border: `1px solid ${color}30`,
-              backdropFilter: "blur(12px)",
-              transform: `translateY(${isCenter ? -50 : -36}px)`,
-              boxShadow: `0 4px 16px rgba(0,0,0,0.4)`,
+          {/* Circle body */}
+          <div style={{
+            position: "relative",
+            width: size,
+            height: size,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: `radial-gradient(circle at 35% 35%, ${color}25, rgba(10,14,28,0.92))`,
+            border: `${isCenter ? 2 : 1.5}px solid ${color}${selected ? "bb" : hovered ? "80" : "45"}`,
+            boxShadow: selected ? `0 0 28px ${color}50, 0 0 8px ${color}30` : hovered ? `0 0 20px ${color}35` : `0 0 8px ${color}15`,
+            transition: "box-shadow 0.25s, border-color 0.25s, transform 0.2s",
+            transform: hovered ? "scale(1.15)" : "scale(1)",
+          }}>
+            <span style={{
+              fontFamily: "'Space Grotesk', 'Inter', sans-serif",
+              fontWeight: 700,
+              fontSize: isCenter ? 18 : Math.max(10, size * 0.24),
+              color,
+              userSelect: "none",
             }}>
-            <p className="text-[10px] font-semibold text-white leading-tight">{node.name}</p>
-            {!isCenter && (
-              <p className="text-[8px] mt-0.5 leading-tight" style={{ color }}>
-                {NODE_LABELS[node.type]} · {node.strength}%
-              </p>
-            )}
+              {node.initials}
+            </span>
           </div>
-        </Html>
-      )}
+
+          {/* Hover tooltip */}
+          {(hovered || selected) && !isCenter && (
+            <div style={{
+              position: "absolute",
+              left: "50%",
+              transform: "translateX(-50%)",
+              top: size + 8,
+              whiteSpace: "nowrap",
+              borderRadius: 12,
+              padding: "6px 12px",
+              background: "rgba(8,12,24,0.92)",
+              border: `1px solid ${color}35`,
+              backdropFilter: "blur(14px)",
+              boxShadow: `0 8px 24px rgba(0,0,0,0.4), 0 0 12px ${color}10`,
+              zIndex: 50,
+            }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "#fff", margin: 0, lineHeight: 1.3 }}>{node.name}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                <span style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color }}>{NODE_LABELS[node.type]}</span>
+                <span style={{ fontSize: 9, color: "#475569" }}>·</span>
+                <span style={{ fontSize: 9, color: "#94A3B8" }}>{node.strength}% match</span>
+              </div>
+              {node.location && <p style={{ fontSize: 9, color: "#64748B", margin: "2px 0 0" }}>{node.location}</p>}
+            </div>
+          )}
+
+          {/* Center node permanent label */}
+          {isCenter && (
+            <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", top: size + 8, textAlign: "center", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: 11, fontWeight: 600, color: "#fff", margin: 0 }}>{node.name}</p>
+              <p style={{ fontSize: 9, color: "#64748B", margin: "1px 0 0" }}>{node.location}</p>
+            </div>
+          )}
+        </div>
+      </Html>
     </group>
   );
 }
