@@ -16,8 +16,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
     const r = localStorage.getItem("unmapped:role");
     if (r === "youth" || r === "employer" || r === "gov") setRoleState(r);
-    // Force-light: remove any leftover dark class
-    document.documentElement.classList.remove("dark");
   }, []);
 
   const setRole = (r: Role | null) => {

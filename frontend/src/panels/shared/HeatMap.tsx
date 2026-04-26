@@ -5,6 +5,7 @@ import { ChevronDown, Globe2, MapPin, TrendingUp, Briefcase, AlertTriangle, Data
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { fetchRealWorldData, getUserCountry, getCountriesByFocus, TOP_CS_COUNTRIES } from "@/services/realDataService";
+import { loadAllData, type DataRow } from "@/services/localDataService";
 
 // Fix Leaflet icon issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -790,32 +791,64 @@ export function RegionalGrid({
 // EconometricDataRow Component
 // ============================================================
 export function EconometricDataRow({ focusId, presetId }: { focusId: string; presetId: string }) {
-  const getRealDataStats = () => {
-    const countries = Object.values(COUNTRY_ECONOMETRICS);
-    if (countries.length === 0) {
-      return [
-        { label: "Avg Monthly Wage (USD)", value: "$0", trend: "Loading...", source: "Loading..." },
-        { label: "Youth NEET Rate", value: "0%", trend: "Loading...", source: "Loading..." },
-        { label: "Automation Risk", value: "0%", trend: "Loading...", source: "Loading..." },
-      ];
-    }
-    
-    const avgWage = Math.round(countries.reduce((sum, c) => sum + (c.salary_usd || 0), 0) / countries.length);
-    const avgYouthNeet = Math.round(countries.reduce((sum, c) => sum + (c.youth_neet || 0), 0) / countries.length);
-    const avgAutomation = Math.round(countries.reduce((sum, c) => sum + (c.automation_risk || 0), 0) / countries.length);
-    
-    return [
-      { label: "Avg Monthly Wage (USD)", value: `$${avgWage}`, trend: "ILO ILOSTAT 2023", source: "International Labour Organization" },
-      { label: "Youth NEET Rate", value: `${avgYouthNeet}%`, trend: "World Bank WDI 2023", source: "World Development Indicators" },
-      { label: "Automation Risk", value: `${avgAutomation}%`, trend: "Frey & Osborne (calibrated)", source: "Oxford Martin School" },
-    ];
-  };
-  
-  const econ = getRealDataStats();
-  
+  const [stats, setStats] = useState<{ label: string; value: string; trend: string; source: string }[]>([
+    { label: "Avg Monthly Wage (USD)", value: "…", trend: "", source: "" },
+    { label: "Youth Unemployment (000s)", value: "…", trend: "", source: "" },
+    { label: "Services Employment (000s)", value: "…", trend: "", source: "" },
+  ]);
+
+  useEffect(() => {
+    loadAllData().then((allData) => {
+      const countries = Object.keys(COUNTRY_ECONOMETRICS);
+      const scope = countries.length > 0 ? countries : getCountriesByFocus(focusId);
+
+      // WDI: average GDP per capita → monthly wage proxy
+      const gdpRows = allData.wdi.filter(
+        (r: DataRow) => r.category === "GDP (constant 2015 US$)" && scope.includes(r.country),
+      );
+      const popRows = allData.wdi.filter(
+        (r: DataRow) => r.category === "Population, total" && scope.includes(r.country),
+      );
+      let avgWage = 0;
+      let wageCount = 0;
+      for (const g of gdpRows) {
+        const pop = popRows.find((p: DataRow) => p.country === g.country);
+        if (pop && pop.value > 0) {
+          avgWage += g.value / pop.value / 12;
+          wageCount++;
+        }
+      }
+      avgWage = wageCount > 0 ? Math.round(avgWage / wageCount) : 0;
+
+      // Youth unemployment
+      const youthUnemp = allData.unemployment.filter(
+        (r: DataRow) => r.category === "Youth Unemployment (15-24)" && scope.includes(r.country),
+      );
+      const avgYouthUnemp =
+        youthUnemp.length > 0
+          ? Math.round(youthUnemp.reduce((s: number, r: DataRow) => s + r.value, 0) / youthUnemp.length)
+          : 0;
+
+      // Services employment
+      const svcRows = allData.sector.filter(
+        (r: DataRow) => r.category === "Services" && scope.includes(r.country),
+      );
+      const avgSvc =
+        svcRows.length > 0
+          ? Math.round(svcRows.reduce((s: number, r: DataRow) => s + r.value, 0) / svcRows.length)
+          : 0;
+
+      setStats([
+        { label: "Avg Monthly Wage (USD)", value: `$${avgWage}`, trend: "WDI GDP per capita / 12", source: "World Bank WDI 2022" },
+        { label: "Avg Youth Unemployment (000s)", value: `${avgYouthUnemp}`, trend: "ILO ILOSTAT 2020–2025", source: "International Labour Organization" },
+        { label: "Avg Services Employment (000s)", value: `${avgSvc}`, trend: "ILO ILOSTAT 2020–2025", source: "International Labour Organization" },
+      ]);
+    });
+  }, [focusId, presetId]);
+
   return (
-    <div className="grid gap-x-8 gap-y-4 rounded-2xl border bg-white px-6 py-4 sm:grid-cols-3" style={{ borderColor: "var(--color-border)" }}>
-      {econ.map((e) => (
+    <div className="grid gap-x-8 gap-y-4 rounded-2xl border px-6 py-4 sm:grid-cols-3" style={{ borderColor: "var(--color-border)", background: "var(--color-card)" }}>
+      {stats.map((e) => (
         <div key={e.label}>
           <p className="eyebrow">{e.label}</p>
           <p className="metric-num mt-1 text-2xl" style={{ color: "var(--color-ink)" }}>{e.value}</p>
