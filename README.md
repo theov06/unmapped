@@ -220,7 +220,8 @@ frontend/
 
 ## Team
 
-Built at HackNation Youth 2025.
+Theo Von, Mujib ur Rahman, Luis Delgadillo and Akanksha Agarwal.
+Built at HackNation 2026. Challenge for The World Bank.
 
 ---
 
