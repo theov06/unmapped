@@ -70,13 +70,16 @@ function GraphNodeView({ data }: NodeProps) {
         )}
       </div>
       <div
-        className="mt-1.5 max-w-[120px] truncate rounded-full bg-white/85 px-2 py-0.5 text-center text-[11px] font-semibold backdrop-blur-sm"
-        style={{ color: "var(--color-ink)" }}
+        className="z-10 mt-1.5 max-w-[140px] truncate rounded-full border bg-white px-2.5 py-0.5 text-center text-[11px] font-semibold shadow-sm"
+        style={{ color: "#0f172a", borderColor: "rgb(15 23 42 / 0.12)" }}
       >
         {d.label}
       </div>
       {d.sub && (
-        <div className="-mt-0.5 max-w-[140px] truncate text-center text-[10px] text-muted-foreground">
+        <div
+          className="z-10 -mt-0.5 max-w-[170px] truncate rounded-full bg-white/90 px-2 py-0.5 text-center text-[10px] shadow-sm"
+          style={{ color: "#334155" }}
+        >
           {d.sub}
         </div>
       )}
@@ -166,10 +169,10 @@ export function GraphLegend({
       className="absolute bottom-4 left-4 rounded-2xl border bg-white/95 p-3 shadow-md backdrop-blur"
       style={{ borderColor: "var(--color-border)" }}
     >
-      <p className="eyebrow mb-1.5">Legend</p>
+      <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#334155" }}>Legend</p>
       <div className="flex flex-col gap-1.5">
         {items.map((it) => (
-          <div key={it.label} className="flex items-center gap-2 text-[12px]" style={{ color: "var(--color-ink)" }}>
+          <div key={it.label} className="flex items-center gap-2 text-[12px] font-medium" style={{ color: "#0f172a" }}>
             <span className="h-2.5 w-2.5 rounded-full" style={{ background: it.color }} />
             {it.label}
           </div>
