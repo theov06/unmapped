@@ -4,7 +4,7 @@
 
 UNMAPPED is a multi-tenant platform that maps real human skills to real economic opportunity — for the people who have them, the organizations that need them, and the governments that shape them.
 
-Built for the [HackNation Youth Hackathon](https://hacknation.io).
+Built for the [HackNation Youth Hackathon](https://hack-nation.ai).
 
 ---
 
