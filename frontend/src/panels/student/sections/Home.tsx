@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, TrendingUp, Zap, Shield, Briefcase, Compass, Sparkles } from "lucide-react";
+import { ArrowUpRight, TrendingUp, Zap, Shield, Briefcase, Compass, Sparkles, ShieldAlert } from "lucide-react";
 import { motion } from "framer-motion";
 import { OpportunityOrb } from "@/components/motion/OpportunityOrb";
 import { SignalRail, type Signal } from "@/components/motion/SignalRail";
@@ -9,6 +9,7 @@ import { MatchRing } from "@/components/motion/MatchRing";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
 import { OPPORTUNITIES, loadProfile } from "@/panels/shared/seed";
 import { loadAllData, filterByCountry, getWdiValue } from "@/services/localDataService";
+import { matchOccupations, getCountry, type SignalResult } from "@/lib/skillEngine";
 import { useState, useEffect } from "react";
 
 export function StudentHome() {
@@ -17,8 +18,10 @@ export function StudentHome() {
   const [wage, setWage] = useState(0);
   const [svcJobs, setSvcJobs] = useState(0);
   const [youthUnemp, setYouthUnemp] = useState(0);
+  const [occMatches, setOccMatches] = useState<SignalResult[]>([]);
 
   useEffect(() => {
+    // Load ILO/WDI data
     loadAllData().then((d) => {
       const c = profile.country || "Ghana";
       const gdp = getWdiValue(d.wdi, c, "GDP (constant 2015 US$)");
@@ -29,7 +32,13 @@ export function StudentHome() {
       const yu = filterByCountry(d.unemployment, c).find((r) => r.category === "Youth Unemployment (15-24)");
       if (yu) setYouthUnemp(Math.round(yu.value));
     });
-  }, [profile.country]);
+
+    // Run skill engine matching
+    const skillNames = profile.skills.map((id: string) => id.replace(/-/g, " "));
+    const countryCode = profile.country === "Ghana" ? "GH" : profile.country === "Kenya" ? "KE" : profile.country === "Nigeria" ? "NG" : "GH";
+    const results = matchOccupations({ skills: skillNames, educationLevel: "Lower secondary", yearsExperience: 2, countryCode });
+    setOccMatches(results);
+  }, [profile.country, profile.skills]);
 
   const signals: Signal[] = [
     { icon: TrendingUp, label: "Wage signal", value: wage, prefix: "$", color: "#34D399" },
@@ -116,6 +125,53 @@ export function StudentHome() {
         <InsightCard icon={TrendingUp} title="Demand Signal" color="#34D399" delay={0.5}
           body={`Services employment in ${profile.country || "Ghana"}: ${svcJobs.toLocaleString()}k jobs. Growing sector.`} />
       </div>
+
+      {/* SKILL ENGINE: Occupation Matches */}
+      {occMatches.length > 0 && (
+        <div className="mb-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-400 mb-4">Skill Signal Engine · ESCO / ISCO-08</p>
+          <div className="space-y-3">
+            {occMatches.map((r) => (
+              <GlassPanel key={r.occupation.iscoCode} delay={0.1} className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-[14px] font-semibold text-white">{r.occupation.title}</p>
+                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                      style={{
+                        background: r.automationRisk === "low" ? "rgba(52,211,153,0.15)" : r.automationRisk === "medium" ? "rgba(245,158,11,0.15)" : "rgba(255,90,106,0.15)",
+                        color: r.automationRisk === "low" ? "#34D399" : r.automationRisk === "medium" ? "#F59E0B" : "#FF5A6A",
+                      }}>
+                      {r.automationRisk} risk
+                    </span>
+                    <span className="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                      style={{
+                        background: r.growthLabel === "fast-growing" ? "rgba(52,211,153,0.15)" : r.growthLabel === "growing" ? "rgba(34,211,238,0.15)" : "rgba(148,163,184,0.1)",
+                        color: r.growthLabel === "fast-growing" ? "#34D399" : r.growthLabel === "growing" ? "#22D3EE" : "#94A3B8",
+                      }}>
+                      {r.growthLabel}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-slate-500">{r.occupation.sector} · ISCO {r.occupation.iscoCode}</p>
+                  <p className="mt-1 text-[12px] text-slate-400">
+                    Wage: <span className="text-emerald-400 font-medium">${r.expectedWageUSD.low}–${r.expectedWageUSD.high}</span>/mo
+                  </p>
+                  {r.adjacentSkills.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {r.adjacentSkills.map((s) => (
+                        <span key={s} className="rounded-full px-2 py-0.5 text-[9px] font-medium"
+                          style={{ background: "rgba(139,92,246,0.1)", color: "#A78BFA", border: "1px solid rgba(139,92,246,0.2)" }}>
+                          + {s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <MatchRing value={Math.round(r.matchScore * 100)} color="#8B5CF6" />
+              </GlassPanel>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Tag } from "@/components/ui/tag";
 import { loadProfile, saveProfile, type StoredProfile } from "@/panels/shared/seed";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { SkillImportPanel } from "@/components/motion/SkillImportPanel";
+import { ProfileProgress } from "@/components/motion/ProfileProgress";
+import { DataTransparency } from "@/components/motion/DataTransparency";
+import { NotificationPrefs } from "@/components/motion/NotificationPrefs";
 
 const SUGGESTED_SKILLS = [
   "Phone repair", "Soldering", "Customer service", "Mobile money",
@@ -302,6 +306,26 @@ function InputView({ profile, update, ai, setAi, vis, setVis, avatarInput, addEx
         <ToggleRow icon={vis.name ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />} label="Show my name" checked={vis.name} onChange={(v: boolean) => setVis((s: any) => ({ ...s, name: v }))} />
         <ToggleRow icon={vis.location ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />} label="Show my location" checked={vis.location} onChange={(v: boolean) => setVis((s: any) => ({ ...s, location: v }))} />
         <ToggleRow icon={vis.skills ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />} label="Show skills" checked={vis.skills} onChange={(v: boolean) => setVis((s: any) => ({ ...s, skills: v }))} />
+      </Section>
+
+      {/* Profile Progress */}
+      <Section title="Your progress">
+        <ProfileProgress progress={Math.min(100, profile.skills.length * 8 + profile.experiences.length * 15 + (profile.name ? 10 : 0) + (profile.location ? 10 : 0))} />
+      </Section>
+
+      {/* Import skills from multiple formats */}
+      <Section title="Import skills">
+        <SkillImportPanel onImport={(method) => console.log("Import from:", method)} />
+      </Section>
+
+      {/* Notifications */}
+      <Section title="Notifications">
+        <NotificationPrefs />
+      </Section>
+
+      {/* Data transparency */}
+      <Section title="Data & privacy">
+        <DataTransparency />
       </Section>
     </div>
   );

@@ -5,6 +5,8 @@ import { LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 import { FloatingDock, type DockItem } from "./FloatingDock";
 import { BackgroundOrbs } from "@/components/motion/BackgroundOrbs";
+import { ThemeToggle } from "@/components/motion/ThemeToggle";
+import { LanguageSelector } from "@/components/motion/LanguageSelector";
 import { ROLE_META, useApp } from "@/lib/app-context";
 import { pageVariants } from "@/lib/motion";
 
@@ -40,7 +42,9 @@ export function ImmersiveShell({ dockItems, children }: { dockItems: DockItem[];
       >
         <Link to="/"><Logo /></Link>
         {meta && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <ThemeToggle />
             <span className="text-[11px] text-slate-500">{meta.label}</span>
             <div className="grid h-8 w-8 place-items-center rounded-full text-[10px] font-bold text-white"
               style={{ background: "linear-gradient(135deg, #8B5CF6, #22D3EE)", boxShadow: "0 0 16px rgba(139,92,246,0.3)" }}>
