@@ -40,8 +40,8 @@ export function OrgHome() {
             </Link>
             <Link
               to="/org/network"
-              className="inline-flex items-center gap-2 rounded-full border bg-white px-5 py-2.5 text-[13px] font-semibold transition-colors hover:bg-accent"
-              style={{ borderColor: "var(--color-border)", color: "var(--color-ink)" }}
+              className="inline-flex items-center gap-2 rounded-full border bg-white px-5 py-2.5 text-[13px] font-semibold transition-transform duration-200 hover:-translate-y-0.5"
+              style={{ borderColor: "var(--color-border)", color: "#000" }}
             >
               See your network <ArrowUpRight className="h-3.5 w-3.5" />
             </Link>
