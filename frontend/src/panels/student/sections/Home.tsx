@@ -5,22 +5,27 @@ import { SectionHeader } from "@/components/layout/PanelShell";
 import { GlassCard } from "@/components/motion/GlassCard";
 import { AnimatedCounter } from "@/components/motion/AnimatedCounter";
 import { OPPORTUNITIES, loadProfile } from "@/panels/shared/seed";
-import { loadAllData, filterByCountry } from "@/services/localDataService";
+import { loadAllData, filterByCountry, getWdiValue } from "@/services/localDataService";
 import { useState, useEffect } from "react";
 import { staggerContainer, cardVariants, listItem } from "@/lib/motion";
 
 export function StudentHome() {
   const profile = loadProfile();
   const top = OPPORTUNITIES.slice(0, 3);
-  const [svcEmployment, setSvcEmployment] = useState(0);
+  const [wageSignal, setWageSignal] = useState(0);
 
   useEffect(() => {
     loadAllData().then((allData) => {
       const country = profile.country || "Ghana";
-      const rows = filterByCountry(allData.sector, country);
-      const svc = rows.find((r) => r.category === "Services");
-      if (svc) setSvcEmployment(Math.round(svc.value));
-      else setSvcEmployment(210);
+      const gdp = getWdiValue(allData.wdi, country, "GDP (constant 2015 US$)");
+      const pop = getWdiValue(allData.wdi, country, "Population, total");
+      if (gdp && pop && pop > 0) {
+        setWageSignal(Math.round(gdp / pop / 12));
+      } else {
+        const rows = filterByCountry(allData.sector, country);
+        const svc = rows.find((r) => r.category === "Services");
+        setWageSignal(svc ? Math.round(svc.value) : 210);
+      }
     });
   }, [profile.country]);
 
@@ -35,7 +40,7 @@ export function StudentHome() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard icon={Target} label="Profile strength" value={78} suffix="%" color="var(--color-coral)" />
           <MetricCard icon={Zap} label="Open matches" value={12} color="var(--color-sky)" />
-          <MetricCard icon={TrendingUp} label="Services jobs (000s)" value={svcEmployment} color="var(--color-mint)" sub="ILO" />
+          <MetricCard icon={TrendingUp} label="Local wage signal" value={wageSignal} prefix="$" color="var(--color-mint)" sub="WDI" />
           <MetricCard icon={AlertTriangle} label="Automation risk" value={72} suffix="%" color="var(--color-warn)" />
         </div>
 
