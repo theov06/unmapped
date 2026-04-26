@@ -185,3 +185,26 @@
   .dot-bg { background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 22px 22px; }
   .glow-input:focus { box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4), 0 0 20px rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.5); }
 }
+
+
+/* Leaflet dark theme overrides */
+.leaflet-container {
+  background: #060812;
+  filter: saturate(0.9) contrast(1.1);
+}
+.leaflet-control-zoom {
+  filter: invert(1) brightness(1.2);
+}
+.leaflet-control-zoom a {
+  background: rgba(15, 23, 42, 0.9) !important;
+  color: #F8FAFC !important;
+  border-color: rgba(255,255,255,0.1) !important;
+}
+.leaflet-control-attribution {
+  background: rgba(6, 8, 18, 0.8) !important;
+  color: #64748B !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a {
+  color: #8B5CF6 !important;
+}

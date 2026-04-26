@@ -32,7 +32,7 @@ function Landing() {
       </header>
       <motion.section initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 mx-auto max-w-6xl px-6 pt-16 pb-20">
-        <h1 className="text-balance font-display text-[52px] font-bold leading-[1.02] tracking-[-0.03em] text-white md:text-[80px]">
+        <h1 className="text-balance font-display text-[32px] font-bold leading-[1.02] tracking-[-0.03em] text-white sm:text-[48px] md:text-[64px] lg:text-[80px]">
           Close the distance<br />between <span className="neon-text">skills</span> and <span className="neon-text">opportunity</span>.
         </h1>
         <p className="mt-6 max-w-2xl text-balance text-[18px] leading-relaxed text-slate-400">

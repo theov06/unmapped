@@ -1,11 +1,12 @@
 // /src/panels/shared/HeatMap.tsx
 import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import { ChevronDown, Globe2, MapPin, TrendingUp, Briefcase, AlertTriangle, Database, Github, Building2, Users } from "lucide-react";
+import { ChevronDown, Globe2, MapPin, TrendingUp, Briefcase, AlertTriangle, Database, Building2, Users } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { fetchRealWorldData, getUserCountry, getCountriesByFocus, TOP_CS_COUNTRIES } from "@/services/realDataService";
 import { loadAllData, type DataRow } from "@/services/localDataService";
+import { formatPercent, formatCompact, formatCurrency } from "@/lib/format";
 
 // Fix Leaflet icon issues
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -156,11 +157,11 @@ export function FocusPicker({
     return () => window.removeEventListener("click", handle);
   }, [open]);
   return (
-    <div className="relative z-20" onClick={(e) => e.stopPropagation()}>
+    <div className="relative z-[60]" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-[13px] font-medium shadow-sm transition-colors hover:bg-accent"
+        className="flex items-center gap-2 rounded-full border border-white/[0.1] bg-[rgba(15,23,42,0.9)] px-4 py-2 text-[13px] font-medium text-slate-200 shadow-sm transition-colors hover:bg-white/[0.08] backdrop-blur-xl"
         style={{ borderColor: "var(--color-border)", color: "var(--color-ink)" }}
       >
         {value.id === "global" ? <Globe2 className="h-3.5 w-3.5" style={{ color: baseColor }} /> : <MapPin className="h-3.5 w-3.5" style={{ color: baseColor }} />}
@@ -169,7 +170,7 @@ export function FocusPicker({
       </button>
       {open && (
         <div
-          className="absolute left-0 top-full z-30 mt-2 max-h-80 w-56 overflow-y-auto rounded-2xl border bg-white shadow-lg"
+          className="absolute right-0 top-full z-50 mt-2 max-h-[min(320px,50vh)] w-56 overflow-y-auto rounded-2xl border border-white/[0.1] bg-[rgba(15,23,42,0.95)] shadow-lg backdrop-blur-xl"
           style={{ borderColor: "var(--color-border)" }}
         >
           {FOCUS_AREAS.map((f) => (
@@ -210,11 +211,11 @@ export function HeatPresetPicker({
     return () => window.removeEventListener("click", handle);
   }, [open]);
   return (
-    <div className="relative z-20" onClick={(e) => e.stopPropagation()}>
+    <div className="relative z-[60]" onClick={(e) => e.stopPropagation()}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-full border bg-white px-4 py-2 text-[13px] font-medium shadow-sm transition-colors hover:bg-accent"
+        className="flex items-center gap-2 rounded-full border border-white/[0.1] bg-[rgba(15,23,42,0.9)] px-4 py-2 text-[13px] font-medium text-slate-200 shadow-sm transition-colors hover:bg-white/[0.08] backdrop-blur-xl"
         style={{ borderColor: "var(--color-border)", color: "var(--color-ink)" }}
       >
         <span className="h-2 w-2 rounded-full" style={{ background: baseColor }} />
@@ -223,7 +224,7 @@ export function HeatPresetPicker({
       </button>
       {open && (
         <div
-          className="absolute left-0 top-full z-30 mt-2 w-72 overflow-hidden rounded-2xl border bg-white shadow-lg"
+          className="absolute right-0 top-full z-50 mt-2 w-72 max-h-[min(400px,60vh)] overflow-y-auto rounded-2xl border border-white/[0.1] bg-[rgba(15,23,42,0.95)] shadow-lg backdrop-blur-xl"
           style={{ borderColor: "var(--color-border)" }}
         >
           {HEAT_PRESETS.map((p) => (
@@ -261,26 +262,16 @@ export function DataSourceBadge() {
   }, []);
   
   return (
-    <div className="flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-[11px] shadow-sm backdrop-blur-sm">
-      {isRealData ? (
-        <>
-          <Database className="h-3 w-3 text-green-600" />
-          <span className="font-medium text-green-700">Live Data</span>
-          <span className="text-muted-foreground">·</span>
-          <Github className="h-3 w-3" />
-          <span className="text-muted-foreground">GitHub</span>
-          <span className="text-muted-foreground">+</span>
-          <Building2 className="h-3 w-3" />
-          <span className="text-muted-foreground">World Bank</span>
-        </>
-      ) : (
-        <>
-          <Database className="h-3 w-3 text-amber-600" />
-          <span className="font-medium text-amber-700">Sample Data</span>
-          <span className="text-muted-foreground">·</span>
-          <span>ILO + World Bank (simulated)</span>
-        </>
-      )}
+    <div className="flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] shadow-sm backdrop-blur-sm"
+      style={{ background: "rgba(15,23,42,0.8)", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <Database className="h-3 w-3 text-emerald-400" />
+      <span className="font-medium text-emerald-300">Live Data</span>
+      <span className="text-slate-600">·</span>
+      <Briefcase className="h-3 w-3 text-cyan-400" />
+      <span className="text-slate-400">ILO</span>
+      <span className="text-slate-600">+</span>
+      <Building2 className="h-3 w-3 text-violet-400" />
+      <span className="text-slate-400">World Bank</span>
     </div>
   );
 }
@@ -497,7 +488,7 @@ export function LeafletHeatMap({
     return (
       <div
         className="flex items-center justify-center rounded-2xl border"
-        style={{ background: "var(--color-cream)", borderColor: "var(--color-border)", height }}
+        style={{ background: "#0B1020", borderColor: "var(--color-border)", height }}
       >
         <p className="text-muted-foreground">Loading map data...</p>
       </div>
@@ -508,7 +499,7 @@ export function LeafletHeatMap({
     return (
       <div
         className="flex flex-col items-center justify-center gap-3 rounded-2xl border"
-        style={{ background: "var(--color-cream)", borderColor: "var(--color-border)", height, padding: "2rem" }}
+        style={{ background: "#0B1020", borderColor: "var(--color-border)", height, padding: "2rem" }}
       >
         <Globe2 className="h-12 w-12 text-muted-foreground" />
         <p className="text-center text-muted-foreground">
@@ -522,20 +513,22 @@ export function LeafletHeatMap({
   return (
     <div
       className="relative w-full overflow-hidden rounded-2xl border"
-      style={{ background: "var(--color-cream)", borderColor: "var(--color-border)", height }}
+      style={{ background: "#0B1020", borderColor: "var(--color-border)", height }}
       onMouseLeave={() => setHovered(null)}
     >
       <MapContainer
         center={[20, 10]}
         zoom={2}
-        style={{ height: "100%", width: "100%", background: "var(--color-surface-soft)" }}
+        style={{ height: "100%", width: "100%", background: "#060812" }}
         zoomControl={true}
         attributionControl={false}
         className="z-0"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">Carto</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
+          maxZoom={19}
         />
         <GeoJSON
           key={JSON.stringify(geoJsonData)}
@@ -547,69 +540,68 @@ export function LeafletHeatMap({
 
       {hovered && hovered.data && (
         <div
-          className="pointer-events-none fixed z-50 rounded-lg border bg-white shadow-lg"
+          className="pointer-events-none fixed z-50 rounded-2xl"
           style={{
-            borderColor: "var(--color-border)",
-            left: Math.min(hovered.x + 12, window.innerWidth - 300),
-            top: Math.min(hovered.y + 12, window.innerHeight - 200),
-            width: "320px",
+            background: "rgba(8, 12, 24, 0.92)",
+            border: "1px solid rgba(139, 92, 246, 0.35)",
+            backdropFilter: "blur(16px)",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5), 0 0 30px rgba(139,92,246,0.1)",
+            left: Math.min(hovered.x + 12, window.innerWidth - 320),
+            top: Math.min(hovered.y + 12, window.innerHeight - 220),
+            width: "300px",
           }}
         >
-          <div className="p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-base font-bold" style={{ color: "var(--color-ink)" }}>{hovered.name}</h4>
-              {hovered.data.data_source && (
-                <span className="rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-medium text-green-700">
-                  Live
-                </span>
-              )}
+          <div className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h4 className="text-[15px] font-bold text-white">{hovered.name}</h4>
+              <span className="rounded-full px-2 py-0.5 text-[9px] font-semibold text-emerald-300"
+                style={{ background: "rgba(52,211,153,0.15)" }}>
+                Live Data
+              </span>
             </div>
             
-            {hovered.data.repos_count && (
-              <div className="mb-3 border-b pb-2" style={{ borderColor: "var(--color-border)" }}>
-                <div className="mb-1 flex items-center gap-1.5">
-                  <Github className="h-3 w-3" style={{ color: baseColor }} />
-                  <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: baseColor }}>Tech Community (GitHub)</span>
-                </div>
-                <p className="text-[12px]">
-                  <span className="font-semibold">{hovered.data.repos_count}</span> repositories
-                </p>
-                <p className="text-[11px] text-muted-foreground">
-                  <Users className="inline h-2.5 w-2.5 mr-1" />
-                  {hovered.data.contributors_count} estimated contributors
-                </p>
+            {/* Labor Market */}
+            <div className="mb-3 border-b border-white/[0.08] pb-3">
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <Briefcase className="h-3 w-3 text-cyan-400" />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-cyan-400">Labor Market (ILO)</span>
               </div>
-            )}
-            
-            <div className="mb-3 border-b pb-2" style={{ borderColor: "var(--color-border)" }}>
-              <div className="mb-1 flex items-center gap-1.5">
-                <Briefcase className="h-3 w-3" style={{ color: baseColor }} />
-                <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: baseColor }}>Labor Market (ILO)</span>
-              </div>
-              <p className="text-[13px] leading-tight">
-                <span className="font-semibold">${hovered.data.salary_usd}</span>
-                <span className="text-muted-foreground"> avg monthly wage</span>
+              <p className="text-[13px] text-slate-200">
+                <span className="font-semibold text-white">{formatCurrency(hovered.data.salary_usd || 0)}</span>
+                <span className="text-slate-400"> avg monthly wage</span>
               </p>
-              <p className="text-[11px] text-muted-foreground">
-                Employment: <span className="font-medium">{hovered.data.employment_rate}%</span>
-                <span className="mx-1">·</span>
-                Wage growth: <span className="font-medium text-green-600">+{hovered.data.wage_growth}%</span>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Employment: <span className="font-medium text-slate-200">{formatPercent(hovered.data.employment_rate || 0)}</span>
+                <span className="mx-1 text-slate-600">·</span>
+                Wage growth: <span className="font-medium text-emerald-400">+{formatPercent(hovered.data.wage_growth || 0)}</span>
               </p>
             </div>
 
-            <div>
-              <div className="mb-1 flex items-center gap-1.5">
-                <AlertTriangle className="h-3 w-3" style={{ color: hovered.data.automation_risk > 45 ? "var(--color-warn)" : "var(--color-mint)" }} />
-                <span className="text-[10px] font-semibold uppercase tracking-wide">AI Disruption Risk</span>
+            {/* Skills Signal */}
+            <div className="mb-3 border-b border-white/[0.08] pb-3">
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <Users className="h-3 w-3 text-violet-400" />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-violet-400">Skills Signal</span>
               </div>
-              <p className="text-[13px]">
-                <span className="font-semibold">{hovered.data.automation_risk}%</span>
-                <span className="text-muted-foreground"> of jobs at high risk by 2030</span>
+              <p className="text-[12px] text-slate-300">
+                <span className="font-semibold text-white">{formatCompact(hovered.data.contributors_count || 0)}</span> skilled workers indexed
               </p>
-              <p className="text-[11px] text-muted-foreground">
-                Youth NEET: <span className="font-medium">{hovered.data.youth_neet}%</span>
-                <span className="mx-1">·</span>
-                Growth by 2035: <span className="font-medium text-green-600">+{hovered.data.job_growth_2035}%</span>
+            </div>
+
+            {/* AI Disruption Risk */}
+            <div>
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <AlertTriangle className="h-3 w-3" style={{ color: (hovered.data.automation_risk || 0) > 45 ? "#F97316" : "#34D399" }} />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-orange-400">Automation Exposure</span>
+              </div>
+              <p className="text-[13px] text-slate-200">
+                <span className="font-semibold text-white">{formatPercent(hovered.data.automation_risk || 0)}</span>
+                <span className="text-slate-400"> of jobs at high risk by 2030</span>
+              </p>
+              <p className="mt-1 text-[11px] text-slate-400">
+                Youth NEET: <span className="font-medium text-slate-200">{formatPercent(hovered.data.youth_neet || 0)}</span>
+                <span className="mx-1 text-slate-600">·</span>
+                Growth by 2035: <span className="font-medium text-emerald-400">+{formatPercent(hovered.data.job_growth_2035 || 0)}</span>
               </p>
             </div>
           </div>
@@ -658,7 +650,7 @@ export function HeatMap({
     return (
       <div
         className="flex items-center justify-center rounded-2xl border"
-        style={{ background: "var(--color-cream)", borderColor: "var(--color-border)", height }}
+        style={{ background: "#0B1020", borderColor: "var(--color-border)", height }}
       >
         <p className="text-muted-foreground">Loading map data...</p>
       </div>
@@ -724,7 +716,7 @@ export function SimpleHeatMap({ data = {}, height = 460 }: { data?: any; height?
   return (
     <div
       className="flex items-center justify-center rounded-2xl border"
-      style={{ background: "var(--color-cream)", borderColor: "var(--color-border)", height, padding: "2rem" }}
+      style={{ background: "#0B1020", borderColor: "var(--color-border)", height, padding: "2rem" }}
     >
       <div className="text-center">
         <Globe2 className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
@@ -775,7 +767,7 @@ export function RegionalGrid({
   return (
     <div
       className="grid w-full gap-3 overflow-hidden rounded-2xl border p-5 sm:grid-cols-2 md:grid-cols-3"
-      style={{ background: "var(--color-cream)", borderColor: "var(--color-border)", minHeight: height }}
+      style={{ background: "#0B1020", borderColor: "var(--color-border)", minHeight: height }}
     >
       {Object.entries(regions).map(([name, v]) => (
         <div key={name} className="rounded-xl border p-4" style={{ borderColor: "var(--color-border)" }}>
